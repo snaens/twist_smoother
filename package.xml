@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
+  <name>twist_smoother</name>
+  <version>1.0.0</version>
+  <description>Value smoother for Twist/cmd_vel messages.</description>
+  <maintainer email="snaens@snaens.net">Sam 'snaens' Pelz</maintainer>
+  <license>MIT</license>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
+  <buildtool_depend>geometry_msgs</buildtool_depend>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+</package>
