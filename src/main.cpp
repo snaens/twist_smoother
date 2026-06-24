@@ -16,9 +16,14 @@ public:
         this->declare_parameter("acceleration_limit_mps2", 1.5);
         this->declare_parameter("publisher_hz", 20);
 
+        // allow overriding QoS settings
+        this->sub_options_.qos_overriding_options = rclcpp::QosOverridingOptions::with_default_policies();
+        this->pub_options_.qos_overriding_options = rclcpp::QosOverridingOptions::with_default_policies();
+        auto qos = rclcpp::QoS(10);
+        qos.best_effort();
         subscription_ = this->create_subscription<geometry_msgs::msg::Twist>(
-            "twist_limiter/in", 10, std::bind(&TwistLimiter::topic_callback, this, std::placeholders::_1));
-        publisher_ = this->create_publisher<geometry_msgs::msg::Twist>("twist_limiter/out", 10);
+            "twist_limiter/in", qos, std::bind(&TwistLimiter::topic_callback, this, std::placeholders::_1), this->sub_options_);
+        publisher_ = this->create_publisher<geometry_msgs::msg::Twist>("twist_limiter/out", qos, this->pub_options_);
         timer_ = this->create_wall_timer(
             std::chrono::milliseconds(static_cast<int>(1000.0 / static_cast<double>(this->get_parameter("publisher_hz").as_int()))), std::bind(&TwistLimiter::timer_callback, this)
         );
@@ -60,6 +65,8 @@ private:
 
 
     rclcpp::TimerBase::SharedPtr timer_;
+    rclcpp::SubscriptionOptions sub_options_;
+    rclcpp::PublisherOptions pub_options_;
     rclcpp::Subscription<geometry_msgs::msg::Twist>::SharedPtr subscription_;
     rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr publisher_;
 
