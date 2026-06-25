@@ -16,6 +16,13 @@ public:
         this->declare_parameter("acceleration_limit_mps2", 1.5);
         this->declare_parameter("publisher_hz", 20);
 
+        this->declare_parameter("maximum.linear.x", 1.0);
+        this->declare_parameter("maximum.linear.y", 1.0);
+        this->declare_parameter("maximum.linear.z", 1.0);
+        this->declare_parameter("maximum.angular.x", 1.0);
+        this->declare_parameter("maximum.angular.y", 1.0);
+        this->declare_parameter("maximum.angular.z", 1.0);
+
         // allow overriding QoS settings
         this->sub_options_.qos_overriding_options = rclcpp::QosOverridingOptions::with_default_policies();
         this->pub_options_.qos_overriding_options = rclcpp::QosOverridingOptions::with_default_policies();
@@ -50,15 +57,19 @@ private:
 
         const double max_velocity = this->get_parameter("acceleration_limit_mps2").as_double() / static_cast<double>(this->get_parameter("publisher_hz").as_int()); // m/s^2 / 1/s = m/s
 
-        auto controller = [max_velocity](double *out, const double in) -> void {
-            (*out) += std::max(-max_velocity, std::min(max_velocity, in - (*out))); // limit max accel, min/max
+        auto controller = [max_velocity](double *out, const double in, const double limit) -> void {
+            double increment = std::max(-max_velocity, std::min(max_velocity, in - (*out))); // limit max accel, min/max
+            if (abs((*out) + increment) > limit) // new value would exceed maximum value
+                (*out) = ((*out) > 0) ? limit : -limit; // use the limit as value (maximum)
+            else
+                (*out) += increment;
         };
-        controller(&this->out_value.linear.x, this->in_value.linear.x);
-        controller(&this->out_value.linear.y, this->in_value.linear.y);
-        controller(&this->out_value.linear.z, this->in_value.linear.z);
-        controller(&this->out_value.angular.x, this->in_value.angular.x);
-        controller(&this->out_value.angular.y, this->in_value.angular.y);
-        controller(&this->out_value.angular.z, this->in_value.angular.z);
+        controller(&this->out_value.linear.x, this->in_value.linear.x, this->get_parameter("maximum.linear.x").as_double());
+        controller(&this->out_value.linear.y, this->in_value.linear.y, this->get_parameter("maximum.linear.y").as_double());
+        controller(&this->out_value.linear.z, this->in_value.linear.z, this->get_parameter("maximum.linear.z").as_double());
+        controller(&this->out_value.angular.x, this->in_value.angular.x, this->get_parameter("maximum.angular.x").as_double());
+        controller(&this->out_value.angular.y, this->in_value.angular.y, this->get_parameter("maximum.angular.y").as_double());
+        controller(&this->out_value.angular.z, this->in_value.angular.z, this->get_parameter("maximum.angular.z").as_double());
 
         this->publisher_->publish(this->out_value);
     }

@@ -15,7 +15,9 @@ Neato!
 
 ## Parameters
 `acceleration_limit_mps2`, default 1.5: maximum acceleration to clamp values to  
-`publisher_hz` default 20: how many hertz to run the publisher at
+`publisher_hz` default 20: how many hertz to run the publisher at  
+`maximum.linear.x, maximum.linear.y, maximum.linear.z` default 1.0, maximum values to publish and internally accumulate  
+`maximum.angular.x, maximum.angular.y, maximum.angular.z` default 1.0, maximum values to publish and internally accumulate
 
 
 ## Tips
